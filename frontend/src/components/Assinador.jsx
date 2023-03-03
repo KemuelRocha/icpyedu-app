@@ -7,6 +7,7 @@ import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import Typography from '@mui/material/Typography';
 
 
 const theme = createTheme();
@@ -24,16 +25,16 @@ export default function Assinador() {
   return (
     <ThemeProvider theme={theme}>
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-        
         <h1>Assinar um Documento</h1>
-        Assinar um documento de forma digital. 
-        Esta funcionalidade é compatível com certificados emitidos pelo ICPEdu. 
-        Clique em "ESCOLHER ARQUIVO PDF", selecione o arquivo a ser assinado e, 
-        em seguida, clique em "CARREGAR CERTIFICADO DIGITAL", e selecione o 
-        Certificado Digital emitido pela ICPEdu com extensão .p12, então preencha
-        os campos de "E-mail" e "Senha do Certificado Digital" e clique no botão 
-        "ASSINAR". 
-     
+        <Typography paragraph>
+          Assinar um documento de forma digital. 
+          Esta funcionalidade é compatível com certificados emitidos pelo ICPEdu. 
+          Clique em "ESCOLHER ARQUIVO PDF", selecione o arquivo a ser assinado e, 
+          em seguida, clique em "CARREGAR CERTIFICADO DIGITAL", e selecione o 
+          Certificado Digital emitido pela ICPEdu com extensão .p12, então preencha
+          os campos de "E-mail" e "Senha do Certificado Digital" e clique no botão 
+          "ASSINAR". 
+        </Typography>
     </Box>
       <Container component="main" maxWidth="xs">
         <CssBaseline />
