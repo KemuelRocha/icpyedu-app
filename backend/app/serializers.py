@@ -1,12 +1,17 @@
 from rest_framework import serializers
 
 class VerifierSerializer(serializers.Serializer):
-    file_pdf: serializers.FileField()
-    ac_raiz: serializers.FileField()
-    ac_pessoa: serializers.FileField()
+    file_pdf = serializers.FileField()
+
+    class Meta:
+        fields = ['file_pdf']
+ 
 
 class SignSerializer(serializers.Serializer):
+    file_pdf = serializers.FileField()
+    certificado = serializers.FileField()
     email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
-    file_pdf: serializers.FileField()
-    file_certificado: serializers.FileField()
+    password = serializers.CharField()
+
+    class Meta:
+        fields = ['file_pdf', 'certificado', 'email', 'password']
