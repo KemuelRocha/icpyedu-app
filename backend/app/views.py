@@ -63,13 +63,30 @@ class VerificarView(APIView):
 
     def post(self, request):
         file_pdf = request.FILES.get('file_pdf')
-          
-        content_type = file_pdf.content_type
 
+        # Criar um diretório temporário
+        temp_dir = tempfile.mkdtemp()
+
+        # Obter o caminho completo para o PDF
+        file_pdf_path = os.path.join(temp_dir, file_pdf.name)
+
+        # Salvar o arquivo no diretório temporário
+        with open(file_pdf_path, 'wb') as f_pdf:
+            shutil.copyfileobj(file_pdf, f_pdf)
+
+                 
         print('files')
         print(file_pdf) 
         print() 
 
-        response = "POST API and you have uploaded a {} file".format(content_type)
+        ac_1 = './ac/ac-pessoa.cer'
+        ac_2 = './ac/ac-raiz-v3.cer'
+
+        print(verificar_assinatura(file_pdf_path, ac_1, ac_2))
+
+        # Remover o diretório temporário e seus arquivos
+        shutil.rmtree(temp_dir)
+
+        response = "Verificação concluida"
         return Response(response)
 
