@@ -134,6 +134,7 @@ STATIC_URL = 'static/'
 
 # Arquivos de Upload
 
+MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, "uploads")
 
 # Default primary key field type

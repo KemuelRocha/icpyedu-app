@@ -5,11 +5,12 @@ from .serializers import VerifierSerializer, SignSerializer
 from rest_framework.viewsets import ViewSet
 from icpyedu import signer
 from rest_framework.parsers import FileUploadParser
+import os, tempfile
+import shutil
 
-
-def assinar_certificado(file_pdf, password, email, file_certificado):
+def assinar_digitalmente(file_pdf_path, password, email, certificado_path):
     lib = signer.Sign()
-    return(lib.signFile(email, password, file_pdf, file_certificado))
+    return(lib.signFile(email, password, file_pdf_path, certificado_path))
 
 class AssinarView(APIView):
     serializer_class = SignSerializer
@@ -19,23 +20,41 @@ class AssinarView(APIView):
         certificado = request.FILES.get('certificado')
         email = request.data.get('email')
         password = request.data.get('password')
- 
+
+        # Criar um diretório temporário
+        temp_dir = tempfile.mkdtemp()
+
+        # Obter os caminhos completos para o PDF e o certificado
+        file_pdf_path = os.path.join(temp_dir, file_pdf.name)
+        certificado_path = os.path.join(temp_dir, certificado.name)
+
+        # Salvar os arquivos no diretório temporário
+        with open(file_pdf_path, 'wb') as f_pdf:
+            shutil.copyfileobj(file_pdf, f_pdf)
+
+        with open(certificado_path, 'wb') as f_cert:
+            shutil.copyfileobj(certificado, f_cert)
+
         print('files')
-        print(file_pdf) 
-        print(certificado) 
-        print(email) 
-        print(password) 
-        print() 
-        print() 
+        print(file_pdf_path)
+        print(certificado_path)
+        print(email)
+        print(password)
+        print()
 
-        # print(assinar_certificado(file_pdf, password, email, certificado))
+        # Chamar a função assinar_digitalmente com os caminhos dos arquivos temporários
+        print(assinar_digitalmente(file_pdf_path, password, email, certificado_path))
 
-        response = "POST API and you have uploaded a {} file".format(file_pdf.content_type)
+        # Remover o diretório temporário e seus arquivos
+        shutil.rmtree(temp_dir)
+
+        response = "Documento assinado digitalmente com sucesso!"
         return Response(response)
 
 
 
-def verificar_certificado(file_pdf, ac_raiz, ac_pessoa) -> bool:
+
+def verificar_assinatura(file_pdf, ac_raiz, ac_pessoa) -> bool:
     lib = signer.Verifier()
     return(lib.verifySignature(file_pdf, ac_pessoa, ac_raiz))
 
@@ -54,28 +73,3 @@ class VerificarView(APIView):
         response = "POST API and you have uploaded a {} file".format(content_type)
         return Response(response)
 
-
-    # def post(self, request, format=None):
-        # print(request.data)
-
-        # serializer = VerifierSerializer(request.data)
-        # serializer.is_valid(raise_exception=True)
-        # data = serializer.validated_data
-        
-        # file_pdf = data['file_pdf']
-        # ac_raiz = data['ac_raiz']
-        # ac_pessoa = data['ac_pessoa']
-
-        # flag_verificado = verificar_certificado(file_pdf, ac_raiz, ac_pessoa)
-
-        # if flag_verificado:
-        #     return Response(
-        #         {'response': 'Arquivo Assinado Digitalmente' },
-        #         status=status.HTTP_200_OK
-        #     ) 
-        # else:
-        #     return Response(
-        #         {'response': 'Arquivo Não Assinado' },
-        #         status=status.HTTP_200_OK
-        #     )  
-        
