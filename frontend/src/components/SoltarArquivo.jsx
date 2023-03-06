@@ -4,6 +4,14 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Typography from '@mui/material/Typography';
+import axios from 'axios';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import { Icon } from '@mui/material';
+import DoneOutlineIcon from '@mui/icons-material/DoneOutline';
+import CardMembershipIcon from '@mui/icons-material/CardMembership';
+import HowToRegIcon from '@mui/icons-material/HowToReg';
+import ErrorIcon from '@mui/icons-material/Error';
 
 const DropZone = styled('div')(({ theme }) => ({
   minHeight: '200px',
@@ -19,6 +27,7 @@ const DropZone = styled('div')(({ theme }) => ({
 
 const FileUpload = () => {
   const [files, setFiles] = useState([]);
+  const [response, setResponse] = useState(null);
 
   const handleDrop = (event) => {
     event.preventDefault();
@@ -29,6 +38,66 @@ const FileUpload = () => {
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files);
     setFiles(files);
+  };
+
+  const handleUpload = () => {
+    const formData = new FormData();
+    formData.append('file_pdf', files[0]);
+
+    axios
+      .post('http://127.0.0.1:8000/verificar/', formData)
+      .then((response) => {
+        setResponse(response.data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+
+  const renderResponseCard = () => {
+    if (response === 'OK') {
+      return (
+        <Card sx={{ mt: 3 }}>
+          <CardContent>
+            <Typography variant="h6" color="green">
+              <Icon sx={{ marginRight: '8px' }}>
+                <DoneOutlineIcon />
+              </Icon>
+              Assinatura Digital Válida!
+            </Typography>
+            
+            <Typography variant='subtitle2' color='black'>
+              <Icon sx={{ marginRight: '8px' }}>
+                <CardMembershipIcon />
+              </Icon>
+              Certificado emitido por ICPEdu!
+            </Typography>
+            
+            <Typography variant='subtitle2' color='black'> 
+              <Icon sx={{ marginRight: '8px' }}>
+                <HowToRegIcon />
+              </Icon>
+              Cadeia de certificação validada por AC-PESSOA e AC-RAIZ.
+            </Typography>
+          </CardContent>
+        </Card>
+      );
+    } else if (response === 'FAIL') {
+      return (
+        <Card sx={{ mt: 3 }}>
+          <CardContent>
+            <Typography variant="subtitle2" color="red">
+              <Icon sx={{ marginRight: '8px' }}>
+                <ErrorIcon />
+              </Icon>
+              Não foram detectadas assinaturas válidas emitidas por ICPEdu.
+            </Typography>
+          </CardContent>
+        </Card>
+      );
+    } else {
+      return null;
+    }
   };
 
   return (
@@ -47,10 +116,20 @@ const FileUpload = () => {
           </>
         ) : (
           <Typography variant="subtitle1" gutterBottom>
-            {files.length} file{files.length > 1 ? 's' : ''} selected
+            {files.length} arquivo{files.length > 1 ? 's' : ''} selecionado
           </Typography>
         )}
       </DropZone>
+      {files.length > 0 && (
+        <Button 
+          variant="contained" 
+          onClick={handleUpload} 
+          fullWidth 
+          sx={{ mt: 3, mb: 2 }}>
+          Verificar       
+      </Button>
+      )}
+      {renderResponseCard()}
     </Box>
   );
 };

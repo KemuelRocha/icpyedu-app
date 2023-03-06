@@ -1,3 +1,4 @@
+from io import BytesIO
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -7,10 +8,21 @@ from icpyedu import signer
 from rest_framework.parsers import FileUploadParser
 import os, tempfile
 import shutil
+from django.http import HttpResponse
+from django.http import FileResponse
 
 def assinar_digitalmente(file_pdf_path, password, email, certificado_path):
     lib = signer.Sign()
-    return(lib.signFile(email, password, file_pdf_path, certificado_path))
+    return lib.signFile(email, password, file_pdf_path, certificado_path)
+
+def download_pdf(request):
+    pdf_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../arquivo-assinado.pdf')
+    pdf_file = open(pdf_path, 'rb')
+    response = FileResponse(pdf_file)
+    response['Content-Type'] = 'application/pdf'
+    response['Content-Disposition'] = 'attachment; filename="nome_do_arquivo.pdf"'
+    pdf_file.close()
+    return response
 
 class AssinarView(APIView):
     serializer_class = SignSerializer
@@ -35,6 +47,10 @@ class AssinarView(APIView):
         with open(certificado_path, 'wb') as f_cert:
             shutil.copyfileobj(certificado, f_cert)
 
+        # Chamar a função assinar_digitalmente com os caminhos dos arquivos temporários
+        pdf_assinado = assinar_digitalmente(file_pdf_path, password, email, certificado_path)
+        print(pdf_assinado)
+        
         print('files')
         print(file_pdf_path)
         print(certificado_path)
@@ -42,16 +58,20 @@ class AssinarView(APIView):
         print(password)
         print()
 
-        # Chamar a função assinar_digitalmente com os caminhos dos arquivos temporários
-        print(assinar_digitalmente(file_pdf_path, password, email, certificado_path))
-
         # Remover o diretório temporário e seus arquivos
         shutil.rmtree(temp_dir)
 
-        response = "Documento assinado digitalmente com sucesso!"
-        return Response(response)
 
+        pdf_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../arquivo-assinado.pdf')
+        # Abrir o arquivo pdf_assinado em modo de leitura binária
+        with open(pdf_path, 'rb') as f:
+            # Ler todo o conteúdo do arquivo e armazená-lo em uma variável
+            pdf_bytes = f.read()
 
+        # Criar uma instância de HttpResponse com o conteúdo do arquivo
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="arquivo-assinado.pdf"'
+        return response
 
 
 def verificar_assinatura(file_pdf, ac_raiz, ac_pessoa) -> bool:
@@ -82,11 +102,19 @@ class VerificarView(APIView):
         ac_1 = './ac/ac-pessoa.cer'
         ac_2 = './ac/ac-raiz-v3.cer'
 
-        print(verificar_assinatura(file_pdf_path, ac_1, ac_2))
+        resultado = verificar_assinatura(file_pdf_path, ac_1, ac_2)
+        print(resultado)
 
+        if resultado==True:
+            response = "OK"
+           
+        else:
+            response = "FAIL"
+
+        print(response)
         # Remover o diretório temporário e seus arquivos
         shutil.rmtree(temp_dir)
 
-        response = "Verificação concluida"
+        print("Verificação concluida")
         return Response(response)
 

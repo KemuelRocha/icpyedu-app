@@ -4,6 +4,6 @@ from .views import AssinarView
  
  
 urlpatterns = [
-    path('verificar/', VerificarView.as_view()),
-    path('assinar/', AssinarView.as_view()),
+    path('verificar/', VerificarView.as_view(), name='tela_verificar'),
+    path('assinar/', AssinarView.as_view(), name='tela_assinar'),
 ]

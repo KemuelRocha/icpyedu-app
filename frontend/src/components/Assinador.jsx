@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { saveAs } from 'file-saver';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
@@ -8,19 +9,33 @@ import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
-
+import axios from 'axios';
 
 const theme = createTheme();
 
 export default function Assinador() {
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
+    const form = event.target;
+    const formData = new FormData(form);
+  
+    try {
+      const response = await axios.post('http://127.0.0.1:8000/assinar/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        },
+        responseType: 'blob' // Indica que a resposta é do tipo Blob
+      });
+  
+      const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
+      saveAs(pdfBlob, 'arquivo-assinado.pdf'); // Faz o download do arquivo PDF retornado pela API
+  
+      console.log('Documento assinado digitalmente com sucesso!');
+    } catch (error) {
+      console.error(error);
+    }
   };
+
 
   return (
     <ThemeProvider theme={theme}>
@@ -51,13 +66,13 @@ export default function Assinador() {
               <Grid item xs={12} sm={6}>
                 <Button variant="contained" component="label">
                     Escolher arquivo PDF
-                    <input hidden accept="application/pdf" multiple type="file" />
+                    <input name="file_pdf" hidden accept="application/pdf" multiple type="file" />
                 </Button>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Button variant="contained" component="label">
                     Carregar Certificado Digital
-                    <input hidden accept="application/p12" multiple type="file" />
+                    <input name="certificado" hidden accept="application/p12" multiple type="file" />
                 </Button>
               </Grid>
               <Grid item xs={12}>
